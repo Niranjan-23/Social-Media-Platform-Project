@@ -82,6 +82,7 @@
 .nav-title {
   font-family: 'Lucida Handwriting', cursive;
   font-size: 32px;
+  font-weight: bold;
   margin: 30px;
   color: var(--primary-color);
 }

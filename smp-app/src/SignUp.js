@@ -1,7 +1,8 @@
+// SignUp.jsx
 import React, { useState } from 'react';
 import { TextField, Button, Container, Typography, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
-import './Login.css'; // Reusing the login CSS for similar styling
+import './Login.css';
 
 const SignUp = ({ onSignUp }) => {
   const [email, setEmail] = useState('');
@@ -10,23 +11,32 @@ const SignUp = ({ onSignUp }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!email || !username || !password || !confirmPassword) {
       setError('All fields are required!');
-    } else if (password !== confirmPassword) {
+      return;
+    }
+    if (password !== confirmPassword) {
       setError('Passwords do not match!');
-    } else {
-      setError('');
-      const newUser = {
-        email,         // Email is stored too
-        username,      // This is our primary identifier now
-        password,      // Store the password if needed (or hash it in a real app)
-        profileImage: 'https://via.placeholder.com/150',
-        bio: 'New user',
-        posts: [],
-      };
-      onSignUp(newUser);
+      return;
+    }
+    setError('');
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, username, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        onSignUp(data.token, data.user);
+      } else {
+        setError(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred during signup');
     }
   };
 

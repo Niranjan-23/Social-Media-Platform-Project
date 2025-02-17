@@ -11,7 +11,7 @@ import './Nav.css';
 const Nav = () => {
   return (
     <div className="nav-container">
-      <div className="nav-title">Connect</div>
+      <div className="nav-title">TrvlClk</div>
       <div className="nav-links">
         <Link to="/" className="nav-link">
           <Button className="nav-button" color="success" variant="text">

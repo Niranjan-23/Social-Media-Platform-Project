@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// App.js
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Nav from './Nav';
 import Post from './Post';
@@ -10,89 +11,53 @@ import Notification from './Notification';
 import SignUp from './SignUp';
 import Profile from './Profile';
 import Button from '@mui/material/Button';
-import PersonIcon from '@mui/icons-material/Person';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { Avatar } from '@mui/material';
 
-// Helper functions for local storage
-const getUsersFromLocalStorage = () => {
-  return JSON.parse(localStorage.getItem('users')) || [];
-};
-
+// Helper functions to retrieve data from localStorage
 const getLoggedInUserFromLocalStorage = () => {
-  return JSON.parse(localStorage.getItem('loggedInUser')) || null;
+  const user = localStorage.getItem('loggedInUser');
+  return user ? JSON.parse(user) : null;
 };
 
-const saveUsersToLocalStorage = (users) => {
-  localStorage.setItem('users', JSON.stringify(users));
+const getTokenFromLocalStorage = () => {
+  return localStorage.getItem('token') || null;
 };
 
 const App = () => {
-  const [users, setUsers] = useState(getUsersFromLocalStorage());
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!getTokenFromLocalStorage());
   const [loggedInUser, setLoggedInUser] = useState(getLoggedInUserFromLocalStorage());
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  useEffect(() => {
-    saveUsersToLocalStorage(users);
-  }, [users]);
-
-  const handleLogin = (email, password) => {
-    const user = users.find((u) => u.email === email && u.password === password);
-    if (user) {
-      setLoggedInUser(user);
-      setIsLoggedIn(true);
-      // Save the logged-in user to localStorage
-      localStorage.setItem('loggedInUser', JSON.stringify(user));
-    } else {
-      alert('Invalid email or password!');
-    }
-  };
-
-  const handleSignUp = (newUser) => {
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    setLoggedInUser(newUser);
+  // Handle login by storing token and user data
+  const handleLogin = (token, user) => {
+    setLoggedInUser(user);
     setIsLoggedIn(true);
-    // Save the logged-in user to localStorage
-    localStorage.setItem('loggedInUser', JSON.stringify(newUser));
+    localStorage.setItem('token', token);
+    localStorage.setItem('loggedInUser', JSON.stringify(user));
   };
 
-  const handleAddPost = (postUrl) => {
-    if (!loggedInUser) return;
-    const updatedUser = {
-      ...loggedInUser,
-      posts: [...loggedInUser.posts, postUrl],
-    };
-    setLoggedInUser(updatedUser);
-    const updatedUsers = users.map((u) =>
-      u.email === updatedUser.email ? updatedUser : u
-    );
-    setUsers(updatedUsers);
+  // Handle signup similarly
+  const handleSignUp = (token, user) => {
+    setLoggedInUser(user);
+    setIsLoggedIn(true);
+    localStorage.setItem('token', token);
+    localStorage.setItem('loggedInUser', JSON.stringify(user));
   };
 
-  const handleUpdateUser = (updatedUser) => {
-    setLoggedInUser(updatedUser);
-    const updatedUsers = users.map((u) =>
-      u.email === updatedUser.email ? updatedUser : u
-    );
-    setUsers(updatedUsers);
-    // Update the logged-in user in localStorage
-    localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+  const handleLogout = () => {
+    setLoggedInUser(null);
+    setIsLoggedIn(false);
+    localStorage.removeItem('token');
+    localStorage.removeItem('loggedInUser');
   };
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
   };
 
-  const handleLogout = () => {
-    setLoggedInUser(null);
-    setIsLoggedIn(false);
-    localStorage.removeItem('loggedInUser'); // Remove user from localStorage on logout
-  };
-
-  // Local Route Components
+  // Local Route Components (for demonstration)
   const Home = () => (
     <div className="posts-container">
       <Post postId="post1" />
@@ -102,7 +67,7 @@ const App = () => {
 
   const NewPost = () => (
     <div className="posts-container">
-      <AddPost loggedInUser={loggedInUser} onAddPost={handleAddPost} />
+      <AddPost loggedInUser={loggedInUser} />
     </div>
   );
 
@@ -120,7 +85,7 @@ const App = () => {
 
   const ProfileComp = () => (
     <div className="posts-container">
-      <Profile user={loggedInUser} onUpdateUser={handleUpdateUser} />
+      <Profile user={loggedInUser} />
     </div>
   );
 
@@ -144,8 +109,8 @@ const App = () => {
               </Button>
               <Button onClick={handleLogout} variant="outlined" color="inherit">
                 <Avatar
-                  alt={loggedInUser?.name || 'User'}
-                  src={loggedInUser?.avatar || '/default-avatar.png'}  // Fallback to default if avatar is missing
+                  alt={loggedInUser?.username || 'User'}
+                  src={loggedInUser?.profileImage || '/default-avatar.png'}
                   className="avatar"
                 />
                 Logout
